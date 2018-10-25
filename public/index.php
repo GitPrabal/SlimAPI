@@ -5,23 +5,8 @@ use \Psr\Http\Message\ResponseInterface as Response;
 
 require '../vendor/autoload.php';
 
-$app = new \Slim\App;
-$app->get('/hello/{name}', function (Request $request, Response $response, array $args) {
-    $name = $args['name'];
-    $response->getBody()->write("Hello, $name");
+require 'src/config/db.php';
 
-    return $response;
-});
-
-$app->get('/', function (Request $request, Response $response, array $args) {
-    echo  phpinfo();
-});
-
-$app->get('/id/{id}', function(Request $request,Response $response,array $args){
-return     $id = $args['id']; 
-});
-
-$app->run();
-
+require 'src/routes.php';
 
 ?>
