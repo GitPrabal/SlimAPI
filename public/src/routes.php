@@ -13,7 +13,10 @@ $app->post('/userlogin',function(Request $request , Response $response){
     $email    =  $request->getParam('email');
     $password =  $request->getParam('password');
     $controller = new Controller();
-    return $controller->userlogin($email,$password);
+    $result = $controller->userlogin($email,$password);
+
+    echo  "ddsd";die;
+    return $result;
 });
 
 
