@@ -10,14 +10,37 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 });
 
 $app->post('/userlogin',function(Request $request , Response $response){
-    $email    =  $request->getParam('email');
-    $password =  $request->getParam('password');
+
+    $email    =  $request->getParam('email'); 
+    $password =  $request->getParam('pass');
+    include_once '../controller/Controller.php';
     $controller = new Controller();
     $result = $controller->userlogin($email,$password);
-
-    echo  "ddsd";die;
     return $result;
 });
+
+
+$app->post('/userlogout',function(Request $request , Response $response){
+    $user_id    =  $request->getParam('user_id'); 
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    $result = $controller->userlogout($user_id);
+    return $result;
+});
+
+$app->post('/register',function(Request $request , Response $response){
+
+    $fullname = $request->getParam("fullname"); 
+    $email    = $request->getParam("email"); 
+    $password = $request->getParam("password"); 
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    $result = $controller->UserRegister($fullname,$email,$password);
+    return $result;
+});
+
+
 
 
 $app->run();

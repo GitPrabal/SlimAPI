@@ -3,10 +3,10 @@
 class Db {
 
     public function connect($data){
-        $servername = $data['servername'];
-        $username = $data['username'];
-        $password = $data['password'];
-        $dbname = $data['dbname'];
+        $servername = 'localhost';
+        $username = 'root';
+        $password = '';
+        $dbname = $data ;
         // Create connection
         $conn = new mysqli($servername, $username, $password, $dbname);
         // Check connection
