@@ -74,37 +74,42 @@ class Model{
 		$salt_string  =  md5($email);
 		$salt_string1 =  md5($password);
 		$salt_string  = $salt_string."$".$salt_string1;
+
 		$conn->autocommit(FALSE);
 
 		$stmt = $conn->prepare("INSERT INTO `registration` (`user_id`,`fullname`, `email`, `password`,`salt_string`) 
 		VALUES (?,?,?,?,?) ");
-		$stmt->bind_param("sssss",$user_id,$full_name,$email,$password,$salt_string);
-		 $result = $stmt->execute();
+		$stmt->bind_param("sssss",$user_id,$fullname,$email,$password,$salt_string);
+		$exec = $stmt->execute();
 
-
-
-		 $Sql_Query =  "INSERT INTO `registration`(`user_id`,`fullname`, `email`, `password`,`salt_string`) 
-		 VALUES ('$user_id','$fullname','$email','$password','$salt_string')";
-
-         $result = mysqli_query($conn,$Sql_Query);
-		 $conn->autocommit(TRUE);
-
-		echo  $result;
-
-
-		/*
-
-		$stmt1 = $conn->prepare("INSERT INTO `user_details`(`user_id`) values (?)");
+		$stmt1 = $conn->prepare("INSERT INTO `user_details` (`user_id`) 
+		VALUES (?) ");
 		$stmt1->bind_param("s",$user_id);
-		$result = $stmt1->execute();
-		$conn->commit();
-		*/
+		$exec1 = $stmt1->execute();
 
+		$stmt2 = $conn->prepare("INSERT INTO `expenses` (`user_id`) 
+		VALUES (?) ");
+		$stmt2->bind_param("s",$user_id);
+		$exec2 = $stmt2->execute();
 
-		$conn->close();
+        if( $exec && $exec1 &&  $exec2 ){
+		$conn->autocommit(TRUE);
+		}
+
+		if( $exec && $exec1 &&  $exec2 )
+		{
 
 		$result =array("msg"=>"Account Created Succesfully","status"=>"200");
 		$json = json_encode($result);
+		return $json ;
+		$conn->close();
+
+		}else{
+		$result =array("msg"=>"Unbale To Registered Users","status"=>"400");
+		$json = json_encode($result);
+		return $json ;
+		}
+		
 
 	}
 

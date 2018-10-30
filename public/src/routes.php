@@ -30,9 +30,9 @@ $app->post('/userlogout',function(Request $request , Response $response){
 
 $app->post('/register',function(Request $request , Response $response){
 
-    $fullname = $request->getParam("fullname"); 
-    $email    = $request->getParam("email"); 
-    $password = $request->getParam("password"); 
+    $fullname = $request->getParam('fullname');  
+    $email    = $request->getParam('email'); 
+    $password = $request->getParam('pass'); 
 
     include_once '../controller/Controller.php';
     $controller = new Controller();
