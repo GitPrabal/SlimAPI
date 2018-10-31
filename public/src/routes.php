@@ -40,6 +40,19 @@ $app->post('/register',function(Request $request , Response $response){
     return $result;
 });
 
+$app->post('/uploadImage',function(Request $request, Response $response){
+    
+    echo  '<pre>';print_r($_FILES);
+
+    echo  "-------------------------------------";
+
+
+echo  '<pre>';print_r($request);die;
+
+//    $data = $request->getParam('image');
+
+});
+
 
 
 

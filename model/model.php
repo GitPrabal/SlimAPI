@@ -5,8 +5,16 @@ class Model{
 	public function userlogin($email,$password){
 
 		include_once '../dbconfig/db.php';
+
+		/* Creating DB Class Object */
+
 		$db = new Db();
-		$conn = $db->connect('Admin');
+
+		/* Passing DB Name To Connection
+		   @param DB Name
+		*/
+		
+		$conn = $db->connect('Admin'); 
 		$conn->autocommit(FALSE);
 
 	 	$salt_string  =  md5($email);
@@ -77,6 +85,15 @@ class Model{
 
 		$conn->autocommit(FALSE);
 
+		$count  = $this->checkUserAvailable($conn,$email);
+		
+		if($count > 0){
+			$result =array("msg"=>"Email id already in use","status"=>"300");
+			$json = json_encode($result);
+			echo $json ;
+			return;
+		}
+
 		$stmt = $conn->prepare("INSERT INTO `registration` (`user_id`,`fullname`, `email`, `password`,`salt_string`) 
 		VALUES (?,?,?,?,?) ");
 		$stmt->bind_param("sssss",$user_id,$fullname,$email,$password,$salt_string);
@@ -111,6 +128,18 @@ class Model{
 		}
 		
 
+	}
+
+	public function checkUserAvailable($conn,$email){
+
+		$stmt = $conn->prepare("Select count(*) as count from `registration` where email=? ");
+		$stmt->bind_param("s",$email);
+		$stmt->execute();
+	 	$result  = $stmt->get_result();
+		$result  = $result->fetch_assoc();
+		$count  = $result['count'];
+		return $count;
+	
 	}
 
 	    
