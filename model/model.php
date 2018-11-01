@@ -126,7 +126,6 @@ class Model{
 		$json = json_encode($result);
 		return $json ;
 		}
-		
 
 	}
 
@@ -141,6 +140,80 @@ class Model{
 		return $count;
 	
 	}
+
+	public function uploadDocs($resultImage,$user_id,$document_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$conn->autocommit(FALSE);
+		$stmt2 = $conn->prepare("INSERT INTO `user_docs` (`user_id`,`document_id`,`document_image`) 
+		VALUES (?,?,?) ");
+		$stmt2->bind_param("sss",$user_id,$document_id,$resultImage);
+		$exec2 = $stmt2->execute();
+		
+		if($exec2){
+			$conn->autocommit(TRUE);
+			$result =array("msg"=>"Your Document Is Added","status"=>"200");
+			$json = json_encode($result);
+			return $json;
+		}else{
+			$conn->autocommit(FALSE);
+			$result =array("msg"=>"Unable To Add Document","status"=>"500");
+			$json = json_encode($result);
+			return $json;
+		}
+
+	}
+
+	public function addCategory($category){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$conn->autocommit(FALSE);
+		$stmt2 = $conn->prepare("INSERT INTO `document_category` (`document_name`) 
+		VALUES (?) ");
+		$stmt2->bind_param("s",$category);
+		$exec2 = $stmt2->execute();
+
+		if($exec2){
+			$conn->autocommit(TRUE);
+			$result =array("msg"=>"Category Added Succesfully","status"=>"200");
+			$json = json_encode($result);
+		}else{
+			$conn->autocommit(TRUE);
+			$result =array("msg"=>"Unable To Add Category","status"=>"500");
+			$json = json_encode($result);
+	
+		}
+
+
+		$conn->close();
+		return $json ;
+	}
+
+	public function getAllCategory(){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("SELECT id,document_name from document_category");
+	 	$stmt->execute();
+		$result  = $stmt->get_result();
+		$cat = array();
+
+		while($row = $result->fetch_assoc()) {
+			$cat[] = $row;
+		}
+		echo  json_encode($cat);
+		die;
+	} 
+
+	
 
 	    
 

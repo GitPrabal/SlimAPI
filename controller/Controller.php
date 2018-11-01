@@ -25,6 +25,39 @@ class Controller{
 		return $model->UserRegister($fullname,$email,$password);
 	}
 
+	public function uploadDocs($files,$user_id,$document_id )
+	{
+		$resultImage =  $this->uploadImage($files);
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->uploadDocs($resultImage,$user_id,$document_id);
+	}
+
+	public function uploadImage($files){
+
+		$str  = microtime();
+		$str  = str_replace(' ','',$str);
+		$name = str_replace('.','',$str);
+		$extension = pathinfo($files["myFile"]["name"], PATHINFO_EXTENSION);
+		$imageName = $name;
+		$result =	move_uploaded_file($files["myFile"]["tmp_name"],"../images/".$imageName.".".$extension);
+		return $imageName.".".$extension;
+
+	}
+
+	public function addCategory($category)
+	{
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->addCategory($category);
+	}
+
+	public function getAllCategory(){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getAllCategory();
+	}
+
 
 }
 
