@@ -74,9 +74,9 @@ $app->post('/addCategory',function(Request $request, Response $response){
     return $result = $controller->addCategory($category);
 });
 
-$app->post('/getAllDocs',function(Request $request, Response $response){
+$app->get('/getAllDocs',function(Request $request, Response $response){
 
-      $user_id       = $request->getParam('user_id');
+      $user_id       = $_GET['id'];
       include_once '../controller/Controller.php';
       $controller = new Controller();
       return $result = $controller->getAllDocs($user_id);
