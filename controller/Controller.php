@@ -58,6 +58,12 @@ class Controller{
 		return $model->getAllCategory();
 	}
 
+	public function getAllDocs($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getAllDocs($user_id);
+	}
+
 
 }
 

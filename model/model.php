@@ -138,7 +138,6 @@ class Model{
 		$result  = $result->fetch_assoc();
 		$count  = $result['count'];
 		return $count;
-	
 	}
 
 	public function uploadDocs($resultImage,$user_id,$document_id){
@@ -190,7 +189,6 @@ class Model{
 	
 		}
 
-
 		$conn->close();
 		return $json ;
 	}
@@ -211,7 +209,26 @@ class Model{
 		}
 		echo  json_encode($cat);
 		die;
-	} 
+	}
+	
+	
+	public function getAllDocs($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$stmt = $conn->prepare("SELECT user_docs.id,isApproved,document_id,document_image,image_url,document_name from user_docs left JOIN document_category on user_docs.document_id=document_category.id where user_id=?");
+		$stmt->bind_param("s",$user_id);
+	 	$stmt->execute();
+		$result  = $stmt->get_result();
+		$cat = array();
+
+		while($row = $result->fetch_assoc()) { 
+			$cat[] = $row;
+		}
+		echo json_encode($cat);
+		
+	}
 
 	
 
