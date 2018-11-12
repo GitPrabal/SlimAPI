@@ -145,8 +145,23 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-
 		$conn->autocommit(FALSE);
+		
+		$stmt = $conn->prepare("Select count(*) as count from `user_docs` where document_id=? and user_id=? ");
+		$stmt->bind_param("ss",$document_id,$user_id);
+		$stmt->execute();
+	 	$result  = $stmt->get_result();
+		$result  = $result->fetch_assoc();
+		$count  = $result['count'];
+
+		if($count > 0){
+
+			$result =array("msg"=>"Document Is Already Added","status"=>"300");
+			$json = json_encode($result);
+			return $json;
+		}
+
+
 		$stmt2 = $conn->prepare("INSERT INTO `user_docs` (`user_id`,`document_id`,`document_image`) 
 		VALUES (?,?,?) ");
 		$stmt2->bind_param("sss",$user_id,$document_id,$resultImage);
@@ -173,6 +188,25 @@ class Model{
 		$conn = $db->connect('Admin');
 
 		$conn->autocommit(FALSE);
+
+
+		$stmt = $conn->prepare("Select count(*) as count from `document_category` where document_name=? ");
+		$stmt->bind_param("s",$category);
+		$stmt->execute();
+	 	$result = $stmt->get_result();
+		$result = $result->fetch_assoc();
+		$count  = $result['count'];
+
+		if($count > 0){
+			$result =array("msg"=>"Category Already Added","status"=>"300");
+			$json = json_encode($result);
+			echo  $json;
+			return;
+		}
+
+
+
+		
 		$stmt2 = $conn->prepare("INSERT INTO `document_category` (`document_name`) 
 		VALUES (?) ");
 		$stmt2->bind_param("s",$category);
