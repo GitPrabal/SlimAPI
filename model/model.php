@@ -319,18 +319,23 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-
-		$stmt = $conn->prepare("INSERT INTO `share_document` (`document_name`) 
-		VALUES (?) ");
-		$stmt->bind_param("s",$category);
+		$stmt = $conn->prepare("SELECT user_ipin from user_ipin where user_id=?");
+		$stmt->bind_param("s",$user_id);
 		$exec2 = $stmt->execute();
+		$result    = $stmt->get_result();
+		$row       = $result->fetch_assoc(); 
+		$user_ipin = $row['user_ipin'];
+
+		if(empty($user_ipin)  )
+		{
+			$result =array("msg"=>"Ipin Not Found","status"=>"500");
+			$json = json_encode($result);
+			return $json;
+		}
+
+
 	
 	}
-
-	
-
-	    
-
 		
 
 }

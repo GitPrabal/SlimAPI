@@ -1,5 +1,10 @@
 <?php
 
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
+
+
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
@@ -112,8 +117,8 @@ $app->post('/shareUserDocuments',function(Request $request, Response $response){
 
 });
 
-$app->get('/getUserIpin' , function(Request $request, Response $response){
-
+$app->post('/getUserIpin' , function(Request $request, Response $response){
+    
     $user_id           = $request->getParam('user_id');
     include_once '../controller/Controller.php';
     $controller = new Controller();
