@@ -64,6 +64,24 @@ class Controller{
 		return $model->getAllDocs($user_id);
 	}
 
+	public function getAllUser($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getAllUser($user_id);
+	}
+
+	public function getUserApprovedDocs($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getUserApprovedDocs($user_id);
+	}
+
+	public function shareUserDocuments($user_id,$ipin,$selected_document,$selected_users){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->shareUserDocuments($user_id,$ipin,$selected_document,$selected_users);
+	}
+
 
 }
 

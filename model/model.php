@@ -109,7 +109,13 @@ class Model{
 		$stmt2->bind_param("s",$user_id);
 		$exec2 = $stmt2->execute();
 
-        if( $exec && $exec1 &&  $exec2 ){
+		$stmt3 = $conn->prepare("INSERT INTO `user_ipin` (`user_id`) 
+		VALUES (?) ");
+		$stmt3->bind_param("s",$user_id);
+		$exec3 = $stmt3->execute();
+
+
+        if( $exec && $exec1 &&  $exec2 && $exec3){
 		$conn->autocommit(TRUE);
 		}
 
@@ -203,9 +209,6 @@ class Model{
 			echo  $json;
 			return;
 		}
-
-
-
 		
 		$stmt2 = $conn->prepare("INSERT INTO `document_category` (`document_name`) 
 		VALUES (?) ");
@@ -262,6 +265,57 @@ class Model{
 		}
 		echo json_encode($cat);
 		
+	}
+
+	public function getAllUser($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$stmt = $conn->prepare("SELECT fullname,id from registration where user_id!=?");
+		$stmt->bind_param("s",$user_id);
+	 	$stmt->execute();
+		$result  = $stmt->get_result();
+		$cat = array();
+
+		while($row = $result->fetch_assoc()) { 
+			$cat[] = $row;
+		}
+		echo json_encode($cat);
+
+	}
+
+	public function getUserApprovedDocs($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$stmt = $conn->prepare("SELECT user_docs.id,isApproved,document_id,document_image,image_url,document_name from user_docs left JOIN document_category on user_docs.document_id=document_category.id where user_id=? and isApproved=1");
+		$stmt->bind_param("s",$user_id);
+	 	$stmt->execute();
+		$result  = $stmt->get_result();
+		$cat = array();
+
+		while($row = $result->fetch_assoc()) { 
+			$cat[] = $row;
+		}
+		echo json_encode($cat);
+	}
+
+	public function shareUserDocuments($user_id,$ipin,$selected_document,$selected_users){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("INSERT INTO `share_document` (`document_name`) 
+		VALUES (?) ");
+		$stmt->bind_param("s",$category);
+		$exec2 = $stmt->execute();
+
+
+
+
 	}
 
 	

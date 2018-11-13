@@ -82,6 +82,34 @@ $app->get('/getAllDocs',function(Request $request, Response $response){
       return $result = $controller->getAllDocs($user_id);
 });
 
+$app->post('/getAllUser',function(Request $request, Response $response){
+    $user_id       = $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->getAllUser($user_id);
+
+});
+
+
+$app->post('/getUserApprovedDocs', function(Request $request, Response $response){
+    $user_id       = $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->getUserApprovedDocs($user_id);
+
+});
+
+$app->post('/shareUserDocuments',function(Request $request, Response $response){
+
+    $user_id           = $request->getParam('user_id');
+    $ipin              = $request->getParam('ipin');
+    $selected_users    = $request->getParam('selected_users');
+    $selected_document = $request->getParam('selected_document');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->shareUserDocuments($user_id,$ipin,$selected_document,$selected_users);
+});
 
 
 
