@@ -82,6 +82,12 @@ class Controller{
 		return $model->shareUserDocuments($user_id,$ipin,$selected_document,$selected_users);
 	}
 
+	public function getUserIpin($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getUserIpin($user_id);
+	}
+
 
 }
 

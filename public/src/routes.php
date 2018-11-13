@@ -109,6 +109,16 @@ $app->post('/shareUserDocuments',function(Request $request, Response $response){
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->shareUserDocuments($user_id,$ipin,$selected_document,$selected_users);
+
+});
+
+$app->get('/getUserIpin' , function(Request $request, Response $response){
+
+    $user_id           = $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->getUserIpin($user_id);
+
 });
 
 

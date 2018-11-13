@@ -310,12 +310,21 @@ class Model{
 
 		$stmt = $conn->prepare("INSERT INTO `share_document` (`document_name`) 
 		VALUES (?) ");
+		$stmt->bind_param("s",$ipin);
+		$exec2 = $stmt->execute();
+	}
+
+	public function getUserIpin($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("INSERT INTO `share_document` (`document_name`) 
+		VALUES (?) ");
 		$stmt->bind_param("s",$category);
 		$exec2 = $stmt->execute();
-
-
-
-
+	
 	}
 
 	
