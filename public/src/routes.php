@@ -126,6 +126,28 @@ $app->post('/getUserIpin' , function(Request $request, Response $response){
 
 });
 
+$app->post('/setUserIpin' , function(Request $request, Response $response){
+    
+    $user_id           = $request->getParam('user_id');
+    $ipin              = $request->getParam('ipin');
+    $otp               = $request->getParam('otp');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->setUserIpin($otp,$ipin,$user_id);
+
+});
+
+$app->post('/sendOtp' , function(Request $request, Response $response){
+
+    $user_id           = $request->getParam('user_id');
+    $otp           = $request->getParam('otp');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->sendOtp($user_id,$otp);
+
+});
+
 
 
 $app->run();

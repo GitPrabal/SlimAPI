@@ -331,11 +331,87 @@ class Model{
 			$result =array("msg"=>"Ipin Not Found","status"=>"500");
 			$json = json_encode($result);
 			return $json;
+		}else{
+			$result =array("msg"=>"Ipin Found","status"=>"200");
+			$json = json_encode($result);
+			return $json;
+		}
+	}
+
+	public function setUserIpin($otp,$ipin,$user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$conn->autocommit(FALSE);
+
+		$stmt = $conn->prepare("SELECT count(*) as count  from user_otp where otp=?");
+		$stmt->bind_param("s",$otp);
+		$exec2 = $stmt->execute();
+		$result    = $stmt->get_result();
+		$row       = $result->fetch_assoc(); 
+		$count     = $row['count'];
+
+		if($count > 0){
+
+		$stmt1 = $conn->prepare("UPDATE user_ipin set user_ipin=? where user_id=?");
+		$stmt1->bind_param("ss",$ipin,$user_id);
+		$exec2 = $stmt1->execute();
+
+		if($exec2){
+			$conn->autocommit(TRUE);
+			$result =array("status"=>"200");
+			$json = json_encode($result);
+			return  $json;
+
+		}else{
+			$result =array("msg"=>"Unable To Set Ipin","status"=>"500");
+			$json = json_encode($result);
+			return  $json;
+		}
+
+		}else{
+			$result =array("status"=>"505");
+			$json = json_encode($result);
+			return  $json;
+			
 		}
 
 
-	
+
+
+
+
+		
+
 	}
+
+	public function sendOtp($user_id,$otp){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("INSERT INTO `user_otp`(`user_id`,`otp`) VALUES (?, ?) on duplicate key update otp = ?");
+		$stmt->bind_param("sss", $user_id,$otp,$otp);
+		$exec = $stmt->execute();
+
+		if($exec){
+
+			$conn->autocommit(TRUE);
+			$result =array("msg"=>"OTP set Successfully","status"=>"200");
+			$json = json_encode($result);
+			return  $json;
+
+		}else{
+
+			$result =array("msg"=>"Unable To Set OTP","status"=>"500");
+			$json = json_encode($result);
+			return  $json;
+		}
+
+	}
+
 		
 
 }

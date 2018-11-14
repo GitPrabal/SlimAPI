@@ -88,6 +88,18 @@ class Controller{
 		return $model->getUserIpin($user_id);
 	}
 
+	public function setUserIpin($otp,$ipin,$user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->setUserIpin($otp,$ipin,$user_id);
+	}
+
+	public function sendOtp($user_id,$otp){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->sendOtp($user_id,$otp);
+	}
+
 
 }
 
