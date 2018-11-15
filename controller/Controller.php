@@ -100,6 +100,12 @@ class Controller{
 		return $model->sendOtp($user_id,$otp);
 	}
 
+	public function getAllSharedDocsList($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getAllSharedDocsList($user_id);
+	}
+
 
 }
 

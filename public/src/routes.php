@@ -140,11 +140,19 @@ $app->post('/setUserIpin' , function(Request $request, Response $response){
 
 $app->post('/sendOtp' , function(Request $request, Response $response){
 
-    $user_id           = $request->getParam('user_id');
+    $user_id       = $request->getParam('user_id');
     $otp           = $request->getParam('otp');
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->sendOtp($user_id,$otp);
+});
+
+$app->post('/getAllSharedDocsList',function(Request $request,Response $response){
+
+$user_id = $request->getParam('user_id');
+include_once '../controller/Controller.php';
+$controller = new Controller();
+return $result = $controller->getAllSharedDocsList($user_id);
 
 });
 

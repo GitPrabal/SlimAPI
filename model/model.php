@@ -272,7 +272,7 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-		$stmt = $conn->prepare("SELECT fullname,id from registration where user_id!=?");
+		$stmt = $conn->prepare("SELECT fullname,id,user_id from registration where user_id!=?");
 		$stmt->bind_param("s",$user_id);
 	 	$stmt->execute();
 		$result  = $stmt->get_result();
@@ -308,10 +308,39 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("INSERT INTO `share_document` (`document_name`) 
-		VALUES (?) ");
-		$stmt->bind_param("s",$ipin);
-		$exec2 = $stmt->execute();
+		$document_id = implode(',' , $selected_document );
+		$share_id    = implode(',' , $selected_users );
+
+		$stmt = $conn->prepare("SELECT count(user_ipin) as count from user_ipin where user_ipin=? and user_id=?");
+		$stmt->bind_param("ss",$ipin,$user_id);
+	 	$stmt->execute();
+		$result  = $stmt->get_result();
+		$row = $result->fetch_assoc();
+
+		if($row['count']==0 || $row['count']=='0'){
+			$result =array("msg"=>"Invalid IPIN","status"=>"402");
+			$json = json_encode($result);
+			return $json;
+		}
+
+		$transaction_id =  microtime();
+		$transaction_id = str_replace('.','',$transaction_id);
+		$transaction_id = str_replace(' ','',$transaction_id);
+
+		$stmt1 = $conn->prepare("INSERT INTO `share_document` (`user_id`,`share_with`,`document_id`,`transaction_id`) 
+		VALUES (?,?,?,?) ");
+		$stmt1->bind_param("ssss",$user_id,$share_id,$document_id,$transaction_id);
+		$exec2 = $stmt1->execute();
+
+		if($exec2){
+			$result =array("msg"=>"Document Has Been Shared","status"=>"200");
+			$json = json_encode($result);
+			return $json;
+		}else{
+			$result =array("msg"=>"Unable to share document","status"=>"500");
+			$json = json_encode($result);
+			return $json;
+		}
 	}
 
 	public function getUserIpin($user_id){
@@ -374,16 +403,7 @@ class Model{
 			$result =array("status"=>"505");
 			$json = json_encode($result);
 			return  $json;
-			
 		}
-
-
-
-
-
-
-		
-
 	}
 
 	public function sendOtp($user_id,$otp){
@@ -409,6 +429,68 @@ class Model{
 			$json = json_encode($result);
 			return  $json;
 		}
+
+	}
+
+	public function getAllSharedDocsList($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("SELECT share_with,document_id from share_document where user_id=?");
+		$stmt->bind_param("s",$user_id);
+		$exec2 = $stmt->execute();
+		$result = $stmt->get_result();
+		
+		$list      = array();
+		$user_list = array();
+		$user_parent_id = array();
+
+		while($row  = $result->fetch_assoc()){
+              $list[]  = $row;
+		} 
+
+		for( $i=0; $i<count($list); $i++){
+		$user_parent_id[] = explode(",",$list[$i]['share_with']);	
+		}
+
+		$singleArray = array();
+		$singleArray1 = array();
+
+    foreach ($list as $key => $value){
+        $singleArray[$key] = $value['share_with'];
+	}
+
+	// foreach ($user_parent_id as $key => $value){
+    //     $singleArray1[$key] = $value['share_with'];
+    // }
+
+
+
+
+		// for( $j = 0; $j < count($user_parent_id[$i]); $j++ ){
+
+		// $stmt = $conn->prepare("SELECT fullname,email  from registration where id=?");
+		// $stmt->bind_param("s",$list[$i]['share_with']);
+		// $exec2 = $stmt->execute();
+		// $result    = $stmt->get_result();
+        // while($row         = $result->fetch_assoc()){
+        //       $user_list[] = $row;
+		// }
+   
+		// }
+
+		echo  '<pre>';print_r($user_parent_id);die;
+
+echo  '<pre>';print_r($singleArray);
+echo  '--------------';
+echo  '<pre>';print_r($singleArray1);
+
+die;
+		
+
+
 
 	}
 
