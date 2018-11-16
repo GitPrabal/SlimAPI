@@ -156,7 +156,16 @@ return $result = $controller->getAllSharedDocsList($user_id);
 
 });
 
+$app->post('/deleteUserDoc',function(Request $request, Response $response){
 
+    $user_id     = $request->getParam('user_id');
+    $document_id = $request->getParam('document_id');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->deleteUserDoc($user_id,$document_id);
+      
+});
 
 $app->run();
 

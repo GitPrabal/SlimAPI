@@ -106,6 +106,12 @@ class Controller{
 		return $model->getAllSharedDocsList($user_id);
 	}
 
+	public function deleteUserDoc($user_id,$document_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->deleteUserDoc($user_id,$document_id);
+	}
+
 
 }
 

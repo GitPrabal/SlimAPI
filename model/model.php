@@ -304,6 +304,8 @@ class Model{
 
 	public function shareUserDocuments($user_id,$ipin,$selected_document,$selected_users){
 
+		date_default_timezone_set('Asia/Kolkata');
+
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
@@ -323,13 +325,29 @@ class Model{
 			return $json;
 		}
 
+		$stmt1 = $conn->prepare("SELECT document_id,document_image,image_url from user_docs where document_id = ? and user_id=?");
+		$stmt1->bind_param("ss",$document_id,$user_id);
+	 	$stmt1->execute();
+		$result  = $stmt1->get_result();
+		$row = $result->fetch_assoc();
+
+		$image_url             = $row['image_url'];
+		$loaded_document_image = $row['document_image'];
+		
+		$document_image = $image_url.$loaded_document_image;
+
+
 		$transaction_id =  microtime();
 		$transaction_id = str_replace('.','',$transaction_id);
 		$transaction_id = str_replace(' ','',$transaction_id);
 
-		$stmt1 = $conn->prepare("INSERT INTO `share_document` (`user_id`,`share_with`,`document_id`,`transaction_id`) 
-		VALUES (?,?,?,?) ");
-		$stmt1->bind_param("ssss",$user_id,$share_id,$document_id,$transaction_id);
+		$transaction_date =  date("d-m-Y");
+		$transaction_time = date("h:i:s a"); 
+
+
+		$stmt1 = $conn->prepare("INSERT INTO `share_document` (`user_id`,`share_with`,`document_id`,`document_image`,`transaction_id`,`transaction_date`,`transaction_time`) 
+		VALUES (?,?,?,?,?,?,?) ");
+		$stmt1->bind_param("sssssss",$user_id,$share_id,$document_id,$document_image,$transaction_id,$transaction_date,$transaction_time);
 		$exec2 = $stmt1->execute();
 
 		if($exec2){
@@ -438,58 +456,50 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT share_with,document_id from share_document where user_id=?");
+		$stmt = $conn->prepare("select document_category.document_name,share_document.document_image,share_document.transaction_date,share_document.transaction_time,registration.fullname,registration.email, share_document.transaction_date from registration INNER join share_document on registration.user_id = share_document.share_with INNER JOIN document_category on share_document.document_id = document_category.id where share_document.user_id = ?");
 		$stmt->bind_param("s",$user_id);
 		$exec2 = $stmt->execute();
 		$result = $stmt->get_result();
-		
-		$list      = array();
-		$user_list = array();
-		$user_parent_id = array();
-
-		while($row  = $result->fetch_assoc()){
-              $list[]  = $row;
-		} 
-
-		for( $i=0; $i<count($list); $i++){
-		$user_parent_id[] = explode(",",$list[$i]['share_with']);	
+		$list = array();
+		while($row = $result->fetch_assoc()) 
+		{
+			$list[] = $row;
 		}
 
-		$singleArray = array();
-		$singleArray1 = array();
+        echo  json_encode($list);die;
 
-    foreach ($list as $key => $value){
-        $singleArray[$key] = $value['share_with'];
+		if(count($list)!='0' || count($list)!==0){
+			echo json_encode($list);
+		}else{
+			$result =array("msg"=>"To Data Found","status"=>"500");
+			$json = json_encode($result);
+			echo   $json;
+		}
+
 	}
 
-	// foreach ($user_parent_id as $key => $value){
-    //     $singleArray1[$key] = $value['share_with'];
-    // }
+	public function deleteUserDoc($user_id,$document_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("delete from user_docs where user_id=? and id=?");
+		$stmt->bind_param("ss",$user_id,$document_id);
+		$exec = $stmt->execute();
+
+		if($exec){
+			$result =array("msg"=>"Deleted Successfully","status"=>"200");
+			$json = json_encode($result);
+			echo   $json;
+		}else{
+			$result =array("msg"=>"Unable To Delet","status"=>"500");
+			$json = json_encode($result);
+			echo   $json;
+		}
 
 
-
-
-		// for( $j = 0; $j < count($user_parent_id[$i]); $j++ ){
-
-		// $stmt = $conn->prepare("SELECT fullname,email  from registration where id=?");
-		// $stmt->bind_param("s",$list[$i]['share_with']);
-		// $exec2 = $stmt->execute();
-		// $result    = $stmt->get_result();
-        // while($row         = $result->fetch_assoc()){
-        //       $user_list[] = $row;
-		// }
-   
-		// }
-
-		echo  '<pre>';print_r($user_parent_id);die;
-
-echo  '<pre>';print_r($singleArray);
-echo  '--------------';
-echo  '<pre>';print_r($singleArray1);
-
-die;
 		
-
 
 
 	}
