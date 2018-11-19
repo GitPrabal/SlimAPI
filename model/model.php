@@ -2,6 +2,10 @@
 
 class Model{
 
+	public function __construct(){
+		date_default_timezone_set('Asia/Kolkata');
+	}
+
 	public function userlogin($email,$password){
 
 		include_once '../dbconfig/db.php';
@@ -272,7 +276,7 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-		$stmt = $conn->prepare("SELECT fullname,id,user_id from registration where user_id!=?");
+		$stmt = $conn->prepare("SELECT fullname,id,email,user_id from registration where user_id!=?");
 		$stmt->bind_param("s",$user_id);
 	 	$stmt->execute();
 		$result  = $stmt->get_result();
@@ -304,7 +308,7 @@ class Model{
 
 	public function shareUserDocuments($user_id,$ipin,$selected_document,$selected_users){
 
-		date_default_timezone_set('Asia/Kolkata');
+		
 
 		include_once '../dbconfig/db.php';
 		$db = new Db();
@@ -497,12 +501,78 @@ class Model{
 			$json = json_encode($result);
 			echo   $json;
 		}
+	}
+
+	public function requestDocFromUser($user_id,$document_id,$requested_user_name){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("select count(*) as count from user_docs where user_id=? and document_id=?");
+		$stmt->bind_param("ss",$requested_user_name,$document_id);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$list  = array();
+		$row   = $result->fetch_assoc();
+		$count = $row['count']; 
+
+		if($count > 0){
+		   $status ="200";
+		}else{
+		   $status ="500";
+		}
+
+		$requested_date =  date("d-m-Y");
+		$requested_time = date("h:i:s a");
+		$approved = 0;
+
+		$stmt3 = $conn->prepare("select count(*) as count from user_request where requested_by=? and requested_for=? and approved=?");
+		$stmt3->bind_param("sss",$user_id,$document_id,$approved);
+		$exec = $stmt3->execute();
+		$result = $stmt3->get_result();
+		$row   = $result->fetch_assoc();
+		$doc_count = $row['count']; 
+
+		if($doc_count > 0){
+
+		$result =array("msg"=>"Duplicate Request Found","status"=>"400");
+		$json = json_encode($result);
+		return $json;
+
+		}
 
 
+		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`approved`,`requested_date`,`requested_time` ) 
+		VALUES (?, ?, ?, ?, ?, ?) ");
+		$stmt1->bind_param("ssssss", $user_id,$document_id,$requested_user_name,$approved,$requested_date,$requested_time);
+
+		$exec = $stmt1->execute();
+
+		$result =array("msg"=>"User Request Document Found","status"=>$status);
+		$json = json_encode($result);
+		return $json;
 		
+	}
 
+	public function getAllRequestByUserId($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("select * from user_request where requested_by=?");
+		$stmt->bind_param("s",$user_id);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$list  = array();
+		while($row   = $result->fetch_assoc()){
+			$list[]  = $row;
+		}
+		echo  json_encode($list);
 
 	}
+
 
 		
 

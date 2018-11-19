@@ -112,6 +112,18 @@ class Controller{
 		return $model->deleteUserDoc($user_id,$document_id);
 	}
 
+	public function requestDocFromUser($user_id,$document_id,$requested_user_name){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->requestDocFromUser($user_id,$document_id,$requested_user_name);
+	}
+
+	public function getAllRequestByUserId($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->getAllRequestByUserId($user_id);
+	}
+
 
 }
 

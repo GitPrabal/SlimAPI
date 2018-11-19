@@ -92,7 +92,6 @@ $app->post('/getAllUser',function(Request $request, Response $response){
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->getAllUser($user_id);
-
 });
 
 
@@ -101,7 +100,6 @@ $app->post('/getUserApprovedDocs', function(Request $request, Response $response
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->getUserApprovedDocs($user_id);
-
 });
 
 $app->post('/shareUserDocuments',function(Request $request, Response $response){
@@ -114,11 +112,10 @@ $app->post('/shareUserDocuments',function(Request $request, Response $response){
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->shareUserDocuments($user_id,$ipin,$selected_document,$selected_users);
-
 });
 
 $app->post('/getUserIpin' , function(Request $request, Response $response){
-    
+
     $user_id           = $request->getParam('user_id');
     include_once '../controller/Controller.php';
     $controller = new Controller();
@@ -165,6 +162,28 @@ $app->post('/deleteUserDoc',function(Request $request, Response $response){
     $controller = new Controller();
     return $result = $controller->deleteUserDoc($user_id,$document_id);
       
+});
+
+$app->post('/requestDocFromUser',function(Request $request,Response $response){
+
+    $user_id             = $request->getParam('user_id');
+    $document_id         = $request->getParam('document_id');
+    $requested_user_name = $request->getParam('requested_user_name');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->requestDocFromUser($user_id,$document_id,$requested_user_name);
+    
+});
+
+$app->post('/getAllRequestByUserId',function( Request $request, Response $response){
+
+    $user_id             = $request->getParam('user_id');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->getAllRequestByUserId($user_id);
+    
 });
 
 $app->run();
