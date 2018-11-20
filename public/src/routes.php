@@ -176,14 +176,20 @@ $app->post('/requestDocFromUser',function(Request $request,Response $response){
     
 });
 
-$app->post('/getAllRequestByUserId',function( Request $request, Response $response){
-
+$app->post('/myRequestedDocs',function( Request $request, Response $response){
     $user_id             = $request->getParam('user_id');
-
     include_once '../controller/Controller.php';
     $controller = new Controller();
-    return $result = $controller->getAllRequestByUserId($user_id);
+    return $result = $controller->myRequestedDocs($user_id);
     
+});
+
+$app->get('/requestedDocument/{user_id}', function (Request $request, Response $response, array $args) {
+
+    $user_id = base64_decode($args['user_id']);
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->requestedDocument($user_id);
 });
 
 $app->run();

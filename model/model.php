@@ -508,14 +508,16 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
+		
+		$approved = 1;
 
-		$stmt = $conn->prepare("select count(*) as count from user_docs where user_id=? and document_id=?");
-		$stmt->bind_param("ss",$requested_user_name,$document_id);
+		$stmt = $conn->prepare("select count(*) as count from user_docs where user_id=? and document_id = ? and isApproved = ? ");
+		$stmt->bind_param("sss",$requested_user_name,$document_id,$approved);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
 		$list  = array();
 		$row   = $result->fetch_assoc();
-		$count = $row['count']; 
+		$count = $row['count'];
 
 		if($count > 0){
 		   $status ="200";
@@ -543,6 +545,7 @@ class Model{
 		}
 
 
+
 		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`approved`,`requested_date`,`requested_time` ) 
 		VALUES (?, ?, ?, ?, ?, ?) ");
 		$stmt1->bind_param("ssssss", $user_id,$document_id,$requested_user_name,$approved,$requested_date,$requested_time);
@@ -555,13 +558,13 @@ class Model{
 		
 	}
 
-	public function getAllRequestByUserId($user_id){
+	public function myRequestedDocs($user_id){
 
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("select * from user_request where requested_by=?");
+		$stmt = $conn->prepare("SELECT registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -573,8 +576,28 @@ class Model{
 
 	}
 
+	public function requestedDocument($user_id){
 
-		
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("SELECT registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt->bind_param("s",$user_id);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$list  = array();
+		while($row   = $result->fetch_assoc()){
+			$list[]  = $row;
+		}
+
+		if(!$list){
+			$result = array("msg"=>"No data found","status"=>"false");
+			return json_encode($result);
+		}
+
+		echo  json_encode($list);
+	}
 
 }
 
