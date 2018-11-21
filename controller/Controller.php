@@ -112,16 +112,22 @@ class Controller{
 		return $model->deleteUserDoc($user_id,$document_id);
 	}
 
-	public function requestDocFromUser($user_id,$document_id,$requested_user_name){
+	public function requestForDocumentFromUser($user_id,$document_id,$requested_user_name,$description){
 		include '../model/model.php';
 		$model =  new Model();
-		return $model->requestDocFromUser($user_id,$document_id,$requested_user_name);
+		return $model->requestForDocumentFromUser($user_id,$document_id,$requested_user_name,$description);
+	}
+
+	public function myRequestedDocs($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->myRequestedDocs($user_id);
 	}
 
 	public function requestedDocument($user_id){
 		include '../model/model.php';
 		$model =  new Model();
-		return $model->requestedDocument($user_id);
+		return $model->myRequestedDocs($user_id);
 	}
 
 

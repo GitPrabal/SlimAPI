@@ -153,6 +153,8 @@ return $result = $controller->getAllSharedDocsList($user_id);
 
 });
 
+/* Function is used to delete document which you have uploaded */
+
 $app->post('/deleteUserDoc',function(Request $request, Response $response){
 
     $user_id     = $request->getParam('user_id');
@@ -164,17 +166,24 @@ $app->post('/deleteUserDoc',function(Request $request, Response $response){
       
 });
 
-$app->post('/requestDocFromUser',function(Request $request,Response $response){
+/* Below Function is used to make a request for document from other user */
+
+$app->post('/requestForDocumentFromUser',function(Request $request,Response $response){
 
     $user_id             = $request->getParam('user_id');
     $document_id         = $request->getParam('document_id');
     $requested_user_name = $request->getParam('requested_user_name');
+    $description         = $request->getParam('description');
 
     include_once '../controller/Controller.php';
     $controller = new Controller();
-    return $result = $controller->requestDocFromUser($user_id,$document_id,$requested_user_name);
+    return $result = $controller->requestForDocumentFromUser($user_id,$document_id,$requested_user_name,$description);
     
 });
+
+/* Below Functions is used retrive list of all documents 
+   which is requested by logged in user from other users 
+*/
 
 $app->post('/myRequestedDocs',function( Request $request, Response $response){
     $user_id             = $request->getParam('user_id');
@@ -184,9 +193,14 @@ $app->post('/myRequestedDocs',function( Request $request, Response $response){
     
 });
 
-$app->get('/requestedDocument/{user_id}', function (Request $request, Response $response, array $args) {
 
-    $user_id = base64_decode($args['user_id']);
+/* Below Function is used to retrive all documents 
+ from which is requested by other users from logged in user 
+*/ 
+
+$app->post('/requestedDocument', function (Request $request, Response $response, array $args) {
+
+    $user_id = base64_decode( $request->getParam('user_id') );
     include_once '../controller/Controller.php';
     $controller = new Controller();
     return $result = $controller->requestedDocument($user_id);

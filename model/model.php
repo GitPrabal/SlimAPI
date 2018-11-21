@@ -503,7 +503,7 @@ class Model{
 		}
 	}
 
-	public function requestDocFromUser($user_id,$document_id,$requested_user_name){
+	public function requestForDocumentFromUser($user_id,$document_id,$requested_user_name,$description){
 
 		include_once '../dbconfig/db.php';
 		$db = new Db();
@@ -546,9 +546,9 @@ class Model{
 
 
 
-		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`approved`,`requested_date`,`requested_time` ) 
-		VALUES (?, ?, ?, ?, ?, ?) ");
-		$stmt1->bind_param("ssssss", $user_id,$document_id,$requested_user_name,$approved,$requested_date,$requested_time);
+		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`description`,`approved`,`requested_date`,`requested_time` ) 
+		VALUES (?, ?, ?, ?, ?, ?, ?) ");
+		$stmt1->bind_param("sssssss", $user_id,$document_id,$requested_user_name,$description,$approved,$requested_date,$requested_time);
 
 		$exec = $stmt1->execute();
 
@@ -592,11 +592,11 @@ class Model{
 		}
 
 		if(!$list){
-			$result = array("msg"=>"No data found","status"=>"false");
+			$result = array("msg"=>"No data found ","status"=>"false");
 			return json_encode($result);
 		}
 
-		echo  json_encode($list);
+		return  json_encode($list);
 	}
 
 }
