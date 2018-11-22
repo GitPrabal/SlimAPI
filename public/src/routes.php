@@ -195,7 +195,7 @@ $app->post('/myRequestedDocs',function( Request $request, Response $response){
 
 
 /* Below Function is used to retrive all documents 
- from which is requested by other users from logged in user 
+   which is requested by other users from logged in user 
 */ 
 
 $app->post('/requestedDocument', function (Request $request, Response $response, array $args) {
@@ -205,6 +205,38 @@ $app->post('/requestedDocument', function (Request $request, Response $response,
     $controller = new Controller();
     return $result = $controller->requestedDocument($user_id);
 });
+
+
+/* Below Function is used to retrive count of all requested which is made
+   by logged in users
+   
+*/
+
+$app->post('/myRequestedDocsCount',function( Request $request, Response $response){
+  
+    $user_id             = $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->myRequestedDocsCount($user_id);
+    
+});
+
+
+/* Below function is used to send docs via email 
+   Send Only For the Requested docs from other user to logged in user
+*/
+
+$app->post('/sendRequestedDocViaEmailToUser',function(Request $request,Response $response){
+
+    $id      =  $request->getParam('id');
+    $user_id =  $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->sendRequestedDocViaEmailToUser($id,$user_id);
+
+});
+ 
+
 
 $app->run();
 

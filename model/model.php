@@ -564,7 +564,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=?");
+		$stmt = $conn->prepare("SELECT count(registration.fullname) as count ,registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=? GROUP BY user_request.requested_for");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -572,6 +572,7 @@ class Model{
 		while($row   = $result->fetch_assoc()){
 			$list[]  = $row;
 		}
+
 		echo  json_encode($list);
 
 	}
@@ -582,7 +583,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt = $conn->prepare("SELECT user_request.id as id , registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -597,6 +598,42 @@ class Model{
 		}
 
 		return  json_encode($list);
+	}
+
+	public function myRequestedDocsCount($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$stmt = $conn->prepare("SELECT count(registration.fullname) as count from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=?");
+		$stmt->bind_param("s",$user_id);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+
+		$row   = $result->fetch_assoc();
+		echo $count = $row['count']; 
+		die;
+	}
+
+	public function sendRequestedDocViaEmailToUser($id,$user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		//$stmt = $conn->prepare("SELECT registration.email as email from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.id=?");
+        $stmt  = $conn->prepare("SELECT registration.email as email,user_request.requested_by as requested_user,user_docs.document_image from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id INNER JOIN user_docs on user_docs.document_id=user_request.requested_for where user_request.id=? and user_docs.user_id=?");
+		$stmt->bind_param("ss",$id,$user_id);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$row   = $result->fetch_assoc();
+
+		$email          = $row['email'];
+		$document_image = $row['document_image'];
+
+		echo  json_encode($row);
+
+
+		
 	}
 
 }

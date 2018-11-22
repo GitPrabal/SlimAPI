@@ -124,10 +124,24 @@ class Controller{
 		return $model->myRequestedDocs($user_id);
 	}
 
+	public function myRequestedDocsCount($user_id){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->myRequestedDocsCount($user_id);
+	}
+
 	public function requestedDocument($user_id){
 		include '../model/model.php';
 		$model =  new Model();
-		return $model->myRequestedDocs($user_id);
+		return $model->requestedDocument($user_id);
+	}
+
+	public function sendRequestedDocViaEmailToUser($id,$user_id){
+
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->sendRequestedDocViaEmailToUser($id,$user_id);
+
 	}
 
 
