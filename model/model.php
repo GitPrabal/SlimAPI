@@ -509,6 +509,11 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 		
+		/* @param 
+		   $user_id             = logged in user id
+		   $requested_user_name = By whom a logged in user making a request
+		
+		  */
 		$approved = 1;
 
 		$stmt = $conn->prepare("select count(*) as count from user_docs where user_id=? and document_id = ? and isApproved = ? ");
@@ -528,9 +533,10 @@ class Model{
 		$requested_date =  date("d-m-Y");
 		$requested_time = date("h:i:s a");
 		$approved = 0;
+        $requested_with =  $requested_user_name;
 
-		$stmt3 = $conn->prepare("select count(*) as count from user_request where requested_by=? and requested_for=? and approved=?");
-		$stmt3->bind_param("sss",$user_id,$document_id,$approved);
+		$stmt3 = $conn->prepare("select count(*) as count from user_request where requested_by=? and requested_for=? and requested_with=? and approved=?");
+		$stmt3->bind_param("ssss",$user_id,$document_id,$requested_with,$approved);
 		$exec = $stmt3->execute();
 		$result = $stmt3->get_result();
 		$row   = $result->fetch_assoc();
@@ -583,7 +589,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT user_request.id as id , registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt = $conn->prepare("SELECT user_request.id as id ,registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -630,10 +636,86 @@ class Model{
 		$email          = $row['email'];
 		$document_image = $row['document_image'];
 
-		echo  json_encode($row);
+		$imagePath = "/opt/lampp/htdocs/Slim/images/".$document_image;
 
+		$newPath   = "/opt/lampp/htdocs/Slim/requested_images/";
+	 	$newName   = $newPath.$document_image; 
+		$copied    = copy($imagePath , $newName);
 
-		
+		if($copied){
+
+			$result = $this->sendEmailWithAttachment($email,$document_image);
+
+			return $result;
+			$approved1=0;
+			$update=1;
+
+			$stmt  = $conn->prepare("update user_request set approved=? where id=? and approved = ?");
+			$stmt->bind_param("sss",$update,$id,$approved1);
+			$exec = $stmt->execute();
+			$json   = array("msg"=>"Document Send","status"=>"200");
+
+			$json = json_encode($json);
+			$json = array_push($result,$json);
+
+			return $json;
+
+		}else{
+			$json   = array("msg"=>"Unable To Send Document","status"=>"500");
+			return json_encode($json);
+		}
+
+	}
+
+	public function sendEmailWithAttachment($email,$document_image){
+
+		$url = 'https://api.sendgrid.com/';
+		$user = 'Prabalgupta';
+		$pass = 'Prabal94074_';
+
+		$json_string = array(
+
+		'to' => array(
+			$email
+		),
+		'category' => 'test_category'
+		);
+
+		$link = 'http://sendimages.smartdocuments.com/'.$document_image;
+
+		$html ='Dear Customer your requested document has been shared via below link
+				This Link will valid for 30 minutes 
+				';
+		$html = $html.$link;		
+
+		$params = array(
+			'api_user'  => $user,
+			'api_key'   => $pass,
+			'x-smtpapi' => json_encode($json_string),
+			'to'        => $email,
+			'subject'   => 'Request Document',
+			'html'      => $html,
+			'text'      => 'Its a texting ',
+			'from'      => 'prabal4747@gmail.com',
+		);
+
+		$request =  $url.'api/mail.send.json';
+		// Generate curl request
+		$session = curl_init($request);
+		// Tell curl to use HTTP POST
+		curl_setopt ($session, CURLOPT_POST, true);
+		// Tell curl that this is the body of the POST
+		curl_setopt ($session, CURLOPT_POSTFIELDS, $params);
+		// Tell curl not to return headers, but do return the response
+		curl_setopt($session, CURLOPT_HEADER, false);
+		// Tell PHP not to use SSLv3 (instead opting for TLS)
+		curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+		curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+		// obtain response
+		$response = curl_exec($session);
+		curl_close($session);
+
+		echo  $response;
 	}
 
 }

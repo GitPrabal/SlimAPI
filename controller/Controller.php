@@ -41,6 +41,7 @@ class Controller{
 		$extension = pathinfo($files["myFile"]["name"], PATHINFO_EXTENSION);
 		$imageName = $name;
 		$result =	move_uploaded_file($files["myFile"]["tmp_name"],"../images/".$imageName.".".$extension);
+		
 		return $imageName.".".$extension;
 
 	}
