@@ -4,12 +4,19 @@ class Controller{
 
 	public function userlogin($email,$password){
 
-		 $email =  base64_decode($email);
-		 $password =  base64_decode($password);
+		$email =  base64_decode($email);
+		$password =  base64_decode($password);
 
 		include '../model/model.php';
 		$model =  new Model();
 		return  $model->userlogin($email,$password);
+	}
+
+	public function checkUserDetails($user_id){
+
+		include '../model/model.php';
+		$model =  new Model();
+		return  $model->checkUserDetails($user_id);
 	}
 
 	public function userlogout($user_id){
@@ -19,10 +26,10 @@ class Controller{
 		return $model->userlogout($user_id);
 	}
 
-	public function UserRegister($fullname,$email,$password){
+	public function UserRegister($fullname,$email,$password,$mobileno){
 		include '../model/model.php';
 		$model =  new Model();
-		return $model->UserRegister($fullname,$email,$password);
+		return $model->UserRegister($fullname,$email,$password,$mobileno);
 	}
 
 	public function uploadDocs($files,$user_id,$document_id )
@@ -142,6 +149,14 @@ class Controller{
 		include '../model/model.php';
 		$model =  new Model();
 		return $model->sendRequestedDocViaEmailToUser($id,$user_id);
+
+	}
+
+	public function checkUserPassword($user_id,$oldPass){
+
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->checkUserPassword($user_id,$oldPass);
 
 	}
 

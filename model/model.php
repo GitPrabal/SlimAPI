@@ -72,7 +72,25 @@ class Model{
          return $json ;
 	}
 
-	public function UserRegister($fullname,$email,$password){
+	public function checkUserDetails($user_id){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+		$stmt = $conn->prepare("Select fullname,email,mobile_no from `registration` where user_id=? ");
+		$stmt->bind_param("s",$user_id);
+		$stmt->execute();
+	 	$result  = $stmt->get_result();
+		$result  = $result->fetch_assoc();
+		$json    = json_encode($result);
+
+		return $json;
+
+
+	}
+
+	public function UserRegister($fullname,$email,$password,$mobileno){
 
 		include_once '../dbconfig/db.php';
 		$db = new Db();
@@ -98,9 +116,9 @@ class Model{
 			return;
 		}
 
-		$stmt = $conn->prepare("INSERT INTO `registration` (`user_id`,`fullname`, `email`, `password`,`salt_string`) 
-		VALUES (?,?,?,?,?) ");
-		$stmt->bind_param("sssss",$user_id,$fullname,$email,$password,$salt_string);
+		$stmt = $conn->prepare("INSERT INTO `registration` (`user_id`,`fullname`,`mobile_no`,`email`, `password`,`salt_string`) 
+		VALUES (?,?,?,?,?,?) ");
+		$stmt->bind_param("ssssss",$user_id,$fullname,$mobileno,$email,$password,$salt_string);
 		$exec = $stmt->execute();
 
 		$stmt1 = $conn->prepare("INSERT INTO `user_details` (`user_id`) 
@@ -589,7 +607,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT user_request.id as id ,registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt = $conn->prepare("SELECT user_request.id as id ,registration.fullname as fullname,document_category.document_name as document_name,user_request.approved as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -632,21 +650,27 @@ class Model{
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
 		$row   = $result->fetch_assoc();
+		$documentFoundCount =  count($row);
+
+		if($documentFoundCount == 0)
+		{
+			$json   = array("msg"=>"Document Not Found","status"=>"404");
+			$json = json_encode($json);
+			return $json;
+		}
 
 		$email          = $row['email'];
 		$document_image = $row['document_image'];
 
 		$imagePath = "/opt/lampp/htdocs/Slim/images/".$document_image;
-
 		$newPath   = "/opt/lampp/htdocs/Slim/requested_images/";
+
 	 	$newName   = $newPath.$document_image; 
 		$copied    = copy($imagePath , $newName);
 
 		if($copied){
 
 			$result = $this->sendEmailWithAttachment($email,$document_image);
-
-			return $result;
 			$approved1=0;
 			$update=1;
 
@@ -654,9 +678,7 @@ class Model{
 			$stmt->bind_param("sss",$update,$id,$approved1);
 			$exec = $stmt->execute();
 			$json   = array("msg"=>"Document Send","status"=>"200");
-
 			$json = json_encode($json);
-			$json = array_push($result,$json);
 
 			return $json;
 
@@ -715,7 +737,20 @@ class Model{
 		$response = curl_exec($session);
 		curl_close($session);
 
-		echo  $response;
+		return  $response;
+	}
+
+	public function checkUserPassword($user_id,$oldPass){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+        $stmt  = $conn->prepare("SELECT count(password) as count from registration where user_id = ? and password=? ");
+		$stmt->bind_param("ss",$user_id,$oldPass);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$row   = $result->fetch_assoc();
+		echo $passFoundCount =  count($row); 
 	}
 
 }
