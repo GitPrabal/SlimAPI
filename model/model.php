@@ -452,12 +452,22 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
+		$stmt1 = $conn->prepare("SELECT mobile_no   from registration where user_id=?");
+		$stmt1->bind_param("s",$user_id);
+		$exec2     = $stmt1->execute();
+		$result    = $stmt1->get_result();
+		$row       = $result->fetch_assoc(); 
+		$mobile_no = $row['mobile_no'];
+
 		$stmt = $conn->prepare("INSERT INTO `user_otp`(`user_id`,`otp`) VALUES (?, ?) on duplicate key update otp = ?");
 		$stmt->bind_param("sss", $user_id,$otp,$otp);
 		$exec = $stmt->execute();
-
+		
+		$message = 'Your OTP for set ipin is ';
+		
 		if($exec){
 
+			$sendOtp = $this->sendMessage($mobile_no,$otp,$message);
 			$conn->autocommit(TRUE);
 			$result =array("msg"=>"OTP set Successfully","status"=>"200");
 			$json = json_encode($result);
@@ -490,14 +500,7 @@ class Model{
 
         echo  json_encode($list);die;
 
-		if(count($list)!='0' || count($list)!==0){
-			echo json_encode($list);
-		}else{
-			$result =array("msg"=>"To Data Found","status"=>"500");
-			$json = json_encode($result);
-			echo   $json;
-		}
-
+		
 	}
 
 	public function deleteUserDoc($user_id,$document_id){
@@ -565,16 +568,33 @@ class Model{
 		$result =array("msg"=>"Duplicate Request Found","status"=>"400");
 		$json = json_encode($result);
 		return $json;
-
 		}
-
-
 
 		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`description`,`approved`,`requested_date`,`requested_time` ) 
 		VALUES (?, ?, ?, ?, ?, ?, ?) ");
 		$stmt1->bind_param("sssssss", $user_id,$document_id,$requested_user_name,$description,$approved,$requested_date,$requested_time);
-
 		$exec = $stmt1->execute();
+
+		$stmt4 = $conn->prepare("select fullname,mobile_no from registration where user_id = ?");
+		$stmt4->bind_param("s",$user_id);
+		$exec = $stmt4->execute();
+		$result = $stmt4->get_result();
+		$row   = $result->fetch_assoc();
+		$mobile_no = $row['mobile_no']; 
+		$fullname = $row['fullname']; 
+
+
+		$stmt4 = $conn->prepare("select fullname from registration where user_id = ?");
+		$stmt4->bind_param("s",$requested_user_name);
+		$exec = $stmt4->execute();
+		$result = $stmt4->get_result();
+		$row   = $result->fetch_assoc();
+ 		$reciever_name = $row['fullname']; 
+
+		$otp ='';
+		$message = "Hi $reciever_name,you have a document request from a user $fullname Please login to smart docs and share docs";
+
+		$sendOtp = $this->sendMessage($mobile_no,$otp,$message);
 
 		$result =array("msg"=>"User Request Document Found","status"=>$status);
 		$json = json_encode($result);
@@ -745,13 +765,61 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-        $stmt  = $conn->prepare("SELECT count(password) as count from registration where user_id = ? and password=? ");
+        $stmt  = $conn->prepare("SELECT count(*) as count from registration where user_id = ? and password=?");
 		$stmt->bind_param("ss",$user_id,$oldPass);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
 		$row   = $result->fetch_assoc();
-		echo $passFoundCount =  count($row); 
+		$count = $row['count'];
+		echo $count;
+		die;
+
 	}
+
+	public function changePassword($user_id,$newPass){
+
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$stmt  = $conn->prepare("update registration set password=? where user_id=?");
+		$stmt->bind_param("ss",$newPass,$user_id);
+		$exec = $stmt->execute();
+		if($exec){
+			$json   = array("msg"=>"Password Change Successfully","status"=>"200");
+			$json = json_encode($json);
+			return $json;
+		}else{
+			$json   = array("msg"=>"Unable to Change Password","status"=>"500");
+			$json = json_encode($json);
+			return $json;
+		}
+
+	}
+
+	public function sendMessage($mobile_no,$otp='',$message){
+
+		$apiKey = urlencode('b/526Z7aZeA-o0zK7ODrQLJ1QLcXBD6fMPMYjZTXTn');
+	
+		// Message details
+		
+		$numbers = array($mobile_no);
+		$sender = urlencode('TXTLCL');
+		$message = rawurlencode($message.$otp);
+		
+		$numbers = implode(',', $numbers);
+		
+		// Prepare data for POST request
+		$data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
+		
+		// Send the POST request with cURL
+		$ch = curl_init('https://api.textlocal.in/send/');
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$response = curl_exec($ch);
+		curl_close($ch);
+	}
+
 
 }
 

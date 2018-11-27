@@ -11,6 +11,35 @@ use \Psr\Http\Message\ResponseInterface as Response;
 $app = new \Slim\App;
 
 $app->get('/', function (Request $request, Response $response, array $args) {
+
+
+    $apiKey = urlencode('b/526Z7aZeA-o0zK7ODrQLJ1QLcXBD6fMPMYjZTXTn');
+	
+	// Message details
+	$numbers = array(918105495600);
+	$sender = urlencode('TXTLCL');
+	$message = rawurlencode(' A demo msg');
+ 
+	$numbers = implode(',', $numbers);
+ 
+	// Prepare data for POST request
+	$data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
+ 
+	// Send the POST request with cURL
+	$ch = curl_init('https://api.textlocal.in/send/');
+	curl_setopt($ch, CURLOPT_POST, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	$response = curl_exec($ch);
+	curl_close($ch);
+	
+	// Process your response here
+	echo $response;
+
+
+
+
+
 /*
     echo  '<center><h1>Welcome To Slim App</h1></center>';
 
@@ -75,14 +104,12 @@ curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($session);
 curl_close($session);
 
-echo var_dump($response);
-die;
+echo  $response;
 
-*/
     
 echo  '<center><h1>Welcome To Slim App</h1></center>';
 
-
+*/
 
 });
 
@@ -135,6 +162,18 @@ $app->post('/checkUserPassword',function(Request $request, Response $response){
     $controller = new Controller();
     $result = $controller->checkUserPassword($user_id,$oldPass);
     return $result;
+});
+
+$app->post('/changePassword',function(Request $request,Response $response){
+
+    $user_id    =  $request->getParam('user_id');
+    $newPass    = $request->getParam('newPass');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    $result = $controller->changePassword($user_id,$newPass);
+    return $result;
+
 });
 
 $app->post('/register',function(Request $request , Response $response){

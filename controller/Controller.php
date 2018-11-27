@@ -160,6 +160,14 @@ class Controller{
 
 	}
 
+	public function changePassword($user_id,$newPass){
+
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->changePassword($user_id,$newPass);
+
+	}
+
 
 }
 
