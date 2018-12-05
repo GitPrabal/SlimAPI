@@ -13,57 +13,17 @@ $app = new \Slim\App;
 $app->get('/', function (Request $request, Response $response, array $args) {
 
 
-    $apiKey = urlencode('b/526Z7aZeA-o0zK7ODrQLJ1QLcXBD6fMPMYjZTXTn');
-	
-	// Message details
-	$numbers = array(918105495600);
-	$sender = urlencode('TXTLCL');
-	$message = rawurlencode(' A demo msg');
- 
-	$numbers = implode(',', $numbers);
- 
-	// Prepare data for POST request
-	$data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
- 
-	// Send the POST request with cURL
-	$ch = curl_init('https://api.textlocal.in/send/');
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	$response = curl_exec($ch);
-	curl_close($ch);
-	
-	// Process your response here
-	echo $response;
 
 
 
 
 
-/*
     echo  '<center><h1>Welcome To Slim App</h1></center>';
 
-    $imagePath = "/opt/lampp/htdocs/Slim/images/0001344001541080845.jpg";
-    $newPath = "/opt/lampp/htdocs/Slim/requested_images/";
-    $ext = '.jpg';
-    $newName  = $newPath."a".$ext;
 
-    $copied = copy($imagePath , $newName);
-
-    if ((!$copied)) 
-    {
-        echo "Error : Not Copied";
-    }
-    else
-    { 
-        echo "Copied Successful";
-    }
-die;
-
-
-$url = 'https://api.sendgrid.com/';
-$user = 'Prabalgupta';
-$pass = 'Prabal94074_';
+    $url = 'https://api.sendgrid.com/';
+    $user = 'Prabalgupta';
+    $pass = 'Prabal94074_';
 
 $json_string = array(
 
@@ -107,9 +67,9 @@ curl_close($session);
 echo  $response;
 
     
-echo  '<center><h1>Welcome To Slim App</h1></center>';
 
-*/
+
+
 
 });
 
@@ -172,6 +132,17 @@ $app->post('/changePassword',function(Request $request,Response $response){
     include_once '../controller/Controller.php';
     $controller = new Controller();
     $result = $controller->changePassword($user_id,$newPass);
+    return $result;
+
+});
+
+$app->post('/myNotificationForDocs',function(Request $request, Response $response){
+
+    $user_id    =  $request->getParam('user_id');
+
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    $result = $controller->myNotificationForDocs($user_id);
     return $result;
 
 });

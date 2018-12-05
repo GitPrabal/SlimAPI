@@ -452,7 +452,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt1 = $conn->prepare("SELECT mobile_no   from registration where user_id=?");
+		$stmt1 = $conn->prepare("SELECT mobile_no from registration where user_id=?");
 		$stmt1->bind_param("s",$user_id);
 		$exec2     = $stmt1->execute();
 		$result    = $stmt1->get_result();
@@ -466,12 +466,13 @@ class Model{
 		$message = 'Your OTP for set ipin is ';
 		
 		if($exec){
-
-			$sendOtp = $this->sendMessage($mobile_no,$otp,$message);
+			
+			/* Below Function is used to send OTP Via SMS */
+			// $sendOtp = $this->sendMessage($mobile_no,$otp,$message);
 			$conn->autocommit(TRUE);
 			$result =array("msg"=>"OTP set Successfully","status"=>"200");
 			$json = json_encode($result);
-			return  $json;
+			echo  $json;
 
 		}else{
 
@@ -483,11 +484,11 @@ class Model{
 	}
 
 	public function getAllSharedDocsList($user_id){
-
+		
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-
+		
 		$stmt = $conn->prepare("select document_category.document_name,share_document.document_image,share_document.transaction_date,share_document.transaction_time,registration.fullname,registration.email, share_document.transaction_date from registration INNER join share_document on registration.user_id = share_document.share_with INNER JOIN document_category on share_document.document_id = document_category.id where share_document.user_id = ?");
 		$stmt->bind_param("s",$user_id);
 		$exec2 = $stmt->execute();
@@ -569,10 +570,10 @@ class Model{
 		$json = json_encode($result);
 		return $json;
 		}
-
-		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`description`,`approved`,`requested_date`,`requested_time` ) 
-		VALUES (?, ?, ?, ?, ?, ?, ?) ");
-		$stmt1->bind_param("sssssss", $user_id,$document_id,$requested_user_name,$description,$approved,$requested_date,$requested_time);
+        $isSeen=0;
+		$stmt1 = $conn->prepare("INSERT INTO `user_request`( `requested_by`,`requested_for`,`requested_with`,`description`,`approved`, `isSeen` ,`requested_date`,`requested_time` ) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?) ");
+		$stmt1->bind_param("ssssssss", $user_id,$document_id,$requested_user_name,$description,$approved,$isSeen,$requested_date,$requested_time);
 		$exec = $stmt1->execute();
 
 		$stmt4 = $conn->prepare("select fullname,mobile_no from registration where user_id = ?");
@@ -593,8 +594,10 @@ class Model{
 
 		$otp ='';
 		$message = "Hi $reciever_name,you have a document request from a user $fullname Please login to smart docs and share docs";
-
-		$sendOtp = $this->sendMessage($mobile_no,$otp,$message);
+		
+		/* Below Function is used to send SMS to requested user */
+		
+		//$sendOtp = $this->sendMessage($mobile_no,$otp,$message);
 
 		$result =array("msg"=>"User Request Document Found","status"=>$status);
 		$json = json_encode($result);
@@ -608,7 +611,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT count(registration.fullname) as count ,registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Approved') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=? GROUP BY user_request.requested_for");
+		$stmt = $conn->prepare("SELECT count(registration.fullname) as count ,registration.fullname as fullname,document_category.document_name as document_name,if(user_request.approved='0','Pending','Sent By') as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_with INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_by=? GROUP BY user_request.requested_for");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -627,7 +630,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT user_request.id as id ,registration.fullname as fullname,document_category.document_name as document_name,user_request.approved as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt = $conn->prepare("SELECT user_request.id as id , user_request.requested_date, user_request.requested_time,registration.fullname as fullname,document_category.document_name as document_name,user_request.approved as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -640,6 +643,13 @@ class Model{
 			$result = array("msg"=>"No data found ","status"=>"false");
 			return json_encode($result);
 		}
+
+		$isSeen=1;
+		$stmt  = $conn->prepare("update user_request set isSeen=? where requested_with=? ");
+		$stmt->bind_param("ss",$isSeen,$user_id);
+		$exec = $stmt->execute();
+
+
 
 		return  json_encode($list);
 	}
@@ -691,12 +701,55 @@ class Model{
 		if($copied){
 
 			$result = $this->sendEmailWithAttachment($email,$document_image);
+
 			$approved1=0;
 			$update=1;
 
 			$stmt  = $conn->prepare("update user_request set approved=? where id=? and approved = ?");
 			$stmt->bind_param("sss",$update,$id,$approved1);
 			$exec = $stmt->execute();
+
+			/* Retrive  user id and id of requested user
+			*/
+
+
+			$stmt1  = $conn->prepare("SELECT requested_by,requested_for,requested_with from  user_request where id=?");
+			$stmt1->bind_param("s",$id);
+			$exec1 = $stmt1->execute();
+			$result1 = $stmt1->get_result();
+			$row1   = $result1->fetch_assoc();
+
+			$share_with     = $row1['requested_with'];
+			$document_id    = $row1['requested_for'];
+            $requested_by   = $row1['requested_by'];
+
+
+			/* 
+			Retrive Document Image 
+			*/
+
+			$stmt2  = $conn->prepare("SELECT image_url,document_image from user_docs where user_id=? and document_id=?");
+			$stmt2->bind_param("ss",$share_with,$document_id);
+			$exec2   = $stmt2->execute();
+			$result2 = $stmt2->get_result();
+			$row2    = $result2->fetch_assoc();
+
+			$document_image = $row2['image_url'].$row2['document_image'];
+			$transaction_id =  microtime();
+			$transaction_id = str_replace('.','',$transaction_id);
+			$transaction_id = str_replace(' ','',$transaction_id);
+	
+			$transaction_date =  date("d-m-Y");
+			$transaction_time = date("h:i:s a"); 
+	 
+			$stmt1 = $conn->prepare("INSERT INTO `share_document` (`user_id`,`share_with`,`document_id`,
+			`document_image`,
+			`transaction_id`,`transaction_date`,`transaction_time`) 
+			VALUES (?,?,?,?,?,?,?) ");
+			$stmt1->bind_param("sssssss",$user_id,$requested_by,$document_id,$document_image,$transaction_id,$transaction_date,$transaction_time);
+			$exec2 = $stmt1->execute();
+
+
 			$json   = array("msg"=>"Document Send","status"=>"200");
 			$json = json_encode($json);
 
@@ -781,8 +834,21 @@ class Model{
 		include_once '../dbconfig/db.php';
 		$db = new Db();
 		$conn = $db->connect('Admin');
-		$stmt  = $conn->prepare("update registration set password=? where user_id=?");
-		$stmt->bind_param("ss",$newPass,$user_id);
+
+		$stmt  = $conn->prepare("SELECT email from registration where user_id = ?");
+		$stmt->bind_param("s",$user_id);
+		$exec   = $stmt->execute();
+		$result = $stmt->get_result();
+		$row    = $result->fetch_assoc();
+		$email  = $row['email'];
+
+		$salt_string  =  md5($email);
+		$salt_string1 =  md5($newPass);
+		$salt_string  = $salt_string."$".$salt_string1;
+
+
+		$stmt  = $conn->prepare("update registration set password=?,salt_string=? where user_id=?");
+		$stmt->bind_param("sss",$newPass,$salt_string,$user_id);
 		$exec = $stmt->execute();
 		if($exec){
 			$json   = array("msg"=>"Password Change Successfully","status"=>"200");
@@ -818,6 +884,20 @@ class Model{
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$response = curl_exec($ch);
 		curl_close($ch);
+	}
+
+	public function myNotificationForDocs($user_id){
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+		$isSeen=0;
+
+        $stmt  = $conn->prepare("SELECT count(*) as count from user_request where requested_with=? and isSeen=?");
+		$stmt->bind_param("ss",$user_id,$isSeen);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$row   = $result->fetch_assoc();
+		echo  $row['count']; die;
 	}
 
 
