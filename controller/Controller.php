@@ -172,6 +172,12 @@ class Controller{
 		return $model->myNotificationForDocs($user_id);
 	}
 
+		public function	verifyUserIpin($user_id,$ipin){
+		include '../model/model.php';
+		$model =  new Model();
+		return $model->verifyUserIpin($user_id,$ipin);
+	}
+
 
 }
 

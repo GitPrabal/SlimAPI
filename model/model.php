@@ -900,6 +900,31 @@ class Model{
 		echo  $row['count']; die;
 	}
 
+	public function verifyUserIpin($user_id,$ipin){
+		
+		include_once '../dbconfig/db.php';
+		$db = new Db();
+		$conn = $db->connect('Admin');
+
+
+		$stmt  = $conn->prepare( "SELECT count(*) as count from user_ipin where user_id=? and user_ipin = ?" );
+		$stmt->bind_param("ss",$user_id,$ipin);
+		$exec = $stmt->execute();
+		$result = $stmt->get_result();
+		$row   = $result->fetch_assoc();
+		$count = $row['count'];
+		if($count > 0){
+		$json   = array("msg"=>"Ipin found","status"=>"200");
+		$json = json_encode($json);
+		return $json;
+		}else{
+			$json   = array("msg"=>"Ipin Not found","status"=>"500");
+			$json = json_encode($json);
+			return $json;
+		}
+
+	}
+
 
 }
 

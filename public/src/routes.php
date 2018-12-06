@@ -338,6 +338,17 @@ $app->post('/sendRequestedDocViaEmailToUser',function(Request $request,Response 
     return $result = $controller->sendRequestedDocViaEmailToUser($id,$user_id);
 
 });
+
+/* Below function is used to verify user ipin */
+
+$app->post('/verifyUserIpin',function(Request $request, Response $response){
+    $ipin    = $request->getParam('ipin');
+    $user_id =  $request->getParam('user_id');
+    include_once '../controller/Controller.php';
+    $controller = new Controller();
+    return $result = $controller->verifyUserIpin($user_id,$ipin);
+
+});
  
 
 
