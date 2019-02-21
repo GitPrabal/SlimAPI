@@ -144,12 +144,10 @@ class Controller{
 		return $model->requestedDocument($user_id);
 	}
 
-	public function sendRequestedDocViaEmailToUser($id,$user_id){
-
+	public function sendRequestedDocViaEmailToUser($document_id,$id,$user_id,$note){
 		include '../model/model.php';
 		$model =  new Model();
-		return $model->sendRequestedDocViaEmailToUser($id,$user_id);
-
+		return $model->sendRequestedDocViaEmailToUser($document_id,$id,$user_id,$note);
 	}
 
 	public function checkUserPassword($user_id,$oldPass){
@@ -178,6 +176,9 @@ class Controller{
 		return $model->verifyUserIpin($user_id,$ipin);
 	}
 
+	/* Function to create image */
+
+	
 
 }
 

@@ -489,7 +489,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 		
-		$stmt = $conn->prepare("select document_category.document_name,share_document.document_image,share_document.transaction_date,share_document.transaction_time,registration.fullname,registration.email, share_document.transaction_date from registration INNER join share_document on registration.user_id = share_document.share_with INNER JOIN document_category on share_document.document_id = document_category.id where share_document.user_id = ?");
+		$stmt = $conn->prepare("select document_category.document_name,share_document.document_image,share_document.transaction_date,share_document.transaction_time,registration.fullname,registration.email,share_document.note,share_document.transaction_date from registration INNER join share_document on registration.user_id = share_document.share_with INNER JOIN document_category on share_document.document_id = document_category.id where share_document.user_id = ?");
 		$stmt->bind_param("s",$user_id);
 		$exec2 = $stmt->execute();
 		$result = $stmt->get_result();
@@ -630,7 +630,7 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-		$stmt = $conn->prepare("SELECT user_request.id as id , user_request.requested_date, user_request.requested_time,registration.fullname as fullname,document_category.document_name as document_name,user_request.approved as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
+		$stmt = $conn->prepare("SELECT user_request.description,user_request.id as id , user_request.requested_date, user_request.requested_time,registration.fullname as fullname,document_category.document_name as document_name,user_request.approved as status from registration INNER JOIN user_request on registration.user_id = user_request.requested_by INNER JOIN document_category on user_request.requested_for = document_category.id where user_request.requested_with=?");
 		$stmt->bind_param("s",$user_id);
 		$exec = $stmt->execute();
 		$result = $stmt->get_result();
@@ -669,7 +669,10 @@ class Model{
 		die;
 	}
 
-	public function sendRequestedDocViaEmailToUser($id,$user_id){
+	public function sendRequestedDocViaEmailToUser($document_id,$id,$user_id,$note){
+
+
+		
 
 		include_once '../dbconfig/db.php';
 		$db = new Db();
@@ -689,6 +692,13 @@ class Model{
 			return $json;
 		}
 
+		$stmt  = $conn->prepare("update user_request set approved=1 where id=?");
+		$stmt->bind_param("s",$document_id);
+		$exec = $stmt->execute();
+
+
+
+
 		$email          = $row['email'];
 		$document_image = $row['document_image'];
 
@@ -697,6 +707,13 @@ class Model{
 
 	 	$newName   = $newPath.$document_image; 
 		$copied    = copy($imagePath , $newName);
+
+		$result   = array("msg"=>"Document Sent","status"=>"200");
+		$result   = json_encode($result);
+		return $result;
+		
+
+		$document_image =  $this->saveImageWithText($note,$imagePath);
 
 		if($copied){
 
@@ -743,11 +760,15 @@ class Model{
 			$transaction_time = date("h:i:s a"); 
 	 
 			$stmt1 = $conn->prepare("INSERT INTO `share_document` (`user_id`,`share_with`,`document_id`,
-			`document_image`,
+			`document_image`,`note`,
 			`transaction_id`,`transaction_date`,`transaction_time`) 
-			VALUES (?,?,?,?,?,?,?) ");
-			$stmt1->bind_param("sssssss",$user_id,$requested_by,$document_id,$document_image,$transaction_id,$transaction_date,$transaction_time);
+			VALUES (?,?,?,?,?,?,?,?) ");
+			$stmt1->bind_param("ssssssss",$user_id,$requested_by,$document_id,$document_image,$note,$transaction_id,$transaction_date,$transaction_time);
 			$exec2 = $stmt1->execute();
+
+			
+
+			
 
 
 			$json   = array("msg"=>"Document Send","status"=>"200");
@@ -906,7 +927,6 @@ class Model{
 		$db = new Db();
 		$conn = $db->connect('Admin');
 
-
 		$stmt  = $conn->prepare( "SELECT count(*) as count from user_ipin where user_id=? and user_ipin = ?" );
 		$stmt->bind_param("ss",$user_id,$ipin);
 		$exec = $stmt->execute();
@@ -924,6 +944,60 @@ class Model{
 		}
 
 	}
+
+	/* Convert Text into Image and save it */
+
+
+	public function saveImageWithText($text,$source_file) {
+   
+		$public_file_path = '.';
+		 
+		// Copy and resample the imag
+		list($width, $height) = getimagesize($source_file);
+		$image_p = imagecreatetruecolor($width, $height);
+		$image = imagecreatefromjpeg($source_file);
+		imagecopyresampled($image_p, $image, 0, 0, 0, 0, $width, $height, $width, $height); 
+		 
+		// Prepare font size and colors
+		$text_color = imagecolorallocate($image_p, 0, 0, 0);
+		$bg_color = imagecolorallocate($image_p, 255, 255, 255);
+		$font = '/opt/lampp/htdocs/Slim/model/arial.ttf';
+
+		$font_size = 25; 
+		 
+		// Set the offset x and y for the text position
+		$offset_x = 0;
+		$offset_y = 20;
+		 
+		// Get the size of the text area
+		$dims = imagettfbbox($font_size, 2, $font, $text);
+		$text_width = $dims[4] - $dims[6] + $offset_x;
+		$text_height = $dims[3] - $dims[5] + $offset_y;
+
+		// Add text background
+		imagefilledrectangle($image_p, 0, 0, $text_width, $text_height, $bg_color);
+		 
+		// Add text
+		imagettftext($image_p, $font_size, 1, $offset_x, $offset_y, $text_color, $font, $text);
+
+		// image font_size angle x y  color fontfile text
+		 
+		// Save the picture
+
+		$time = rand(10,1000);
+
+		// $result = imagejpeg($image_p, $public_file_path . '/'.$time.'.jpg', 100); 
+		$result = imagejpeg($image_p, $public_file_path . '/output.jpg', 100); 
+
+		echo  $result;die;
+
+
+	    
+		// Clear
+		// imagedestroy($image); 
+		// imagedestroy($image_p); 
+	  }
+	  
 
 
 }

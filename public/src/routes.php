@@ -13,64 +13,19 @@ $app = new \Slim\App;
 $app->get('/', function (Request $request, Response $response, array $args) {
 
 
+$str1 = 'yabadabadoo';
+$str2 = 'yaba';
+
+echo  strpos($str1,$str2); die; 
+
+if (strpos($str1,$str2)) {
+    echo "\"" . $str1 . "\" contains \"" . $str2 . "\"";
+} else {
+    echo "\"" . $str1 . "\" does not contain \"" . $str2 . "\"";
+}
 
 
-
-
-
-    echo  '<center><h1>Welcome To Slim App</h1></center>';
-
-
-    $url = 'https://api.sendgrid.com/';
-    $user = 'Prabalgupta';
-    $pass = 'Prabal94074_';
-
-$json_string = array(
-
-  'to' => array(
-    'prabal1.gupta@gmail.com'
-  ),
-  'category' => 'test_category'
-);
-
-
-$params = array(
-    'api_user'  => $user,
-    'api_key'   => $pass,
-    'x-smtpapi' => json_encode($json_string),
-    'to'        => 'prabal1.gupta@gmail.com',
-    'subject'   => 'testing from curl',
-    'html'      => 'Hi am inside the body',
-    'text'      => 'Its a texting ',
-    'from'      => 'prabal4747@gmail.com',
-  );
-
-
-$request =  $url.'api/mail.send.json';
-
-// Generate curl request
-$session = curl_init($request);
-// Tell curl to use HTTP POST
-curl_setopt ($session, CURLOPT_POST, true);
-// Tell curl that this is the body of the POST
-curl_setopt ($session, CURLOPT_POSTFIELDS, $params);
-// Tell curl not to return headers, but do return the response
-curl_setopt($session, CURLOPT_HEADER, false);
-// Tell PHP not to use SSLv3 (instead opting for TLS)
-curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-
-// obtain response
-$response = curl_exec($session);
-curl_close($session);
-
-echo  $response;
-
-    
-
-
-
-
+//    echo  '<center><h1>Welcome To Slim App</h1></center>';
 });
 
 $app->get('/getCategory', function (Request $request, Response $response) {
@@ -331,11 +286,16 @@ $app->post('/myRequestedDocsCount',function( Request $request, Response $respons
 
 $app->post('/sendRequestedDocViaEmailToUser',function(Request $request,Response $response){
 
+            
+    $document_id = $request->getParam('documentId');
     $id      =  $request->getParam('id');
     $user_id =  $request->getParam('user_id');
+    $note    =  $request->getParam('note'); 
+
+
     include_once '../controller/Controller.php';
     $controller = new Controller();
-    return $result = $controller->sendRequestedDocViaEmailToUser($id,$user_id);
+    return $result = $controller->sendRequestedDocViaEmailToUser($document_id,$id,$user_id,$note);
 
 });
 
